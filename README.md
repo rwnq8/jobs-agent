@@ -10,3 +10,6 @@ Rowan's autonomous job-search agent. It finds postings from public ATS feeds and
 Deploy: until the sync in issue "Deploy sync from this repo" lands, QNFO/qnfo-workers `qnfo-jobsearch/` is the deploy source; change both together.
 
 Rules that bind this repo: never fabricate a resume claim (every line traces to the ledger); never scrape logged-in LinkedIn pages; the first live submission on Rowan's behalf is confirmed with Rowan, after that the autopilot gates apply; interview and offer mail is surfaced to Rowan at once.
+
+Front door: `/` is one paste box (HANDLE-1): paste a link or posting, the agent reads it, says candidly whether it suits Rowan, asks open recall questions one at a time, then approves (autopilot, dry run until live submission is released), tracks or skips. The old match list is `/matches`. `worker/handle.test.mjs` drives the flow offline.
+Deploy sync (DEPLOY-SYNC-1): `.github/workflows/sync-deploy.yml` runs the suites on a push to `worker/` and opens a sync PR in QNFO/qnfo-workers through `scripts/sync_to_qnfo_workers.sh` (needs the secret `QNFO_SYNC_TOKEN`; without it the workflow warns and skips).

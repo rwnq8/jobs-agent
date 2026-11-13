@@ -1,0 +1,32 @@
+name: sync-deploy
+on:
+  push:
+    branches: [main]
+    paths: ["worker/**"]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: for t in worker/*.test.mjs; do node "$t" || exit 1; done
+  sync:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Open the sync PR in QNFO/qnfo-workers
+        env:
+          GH_TOKEN: ${{ secrets.QNFO_SYNC_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "::warning::QNFO_SYNC_TOKEN is not set; the sync PR was not opened"; exit 0; fi
+          scripts/sync_to_qnfo_workers.sh
+  probe:
+    needs: sync
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Live version (informational; deploy runs from qnfo-workers)
+        run: curl -fsS https://jobs.q08.org/health || true
