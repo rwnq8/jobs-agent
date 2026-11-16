@@ -1,0 +1,14 @@
+name: m2-copy
+# JOBS-TENANT-1 M2: copies the job tables into tenant-jobs-db and verifies counts. Hourly until it passes; a pass is a no-op rerun.
+on:
+  schedule: [{ cron: "17 * * * *" }]
+  workflow_dispatch:
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node tenant/m2-copy.mjs
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}" }

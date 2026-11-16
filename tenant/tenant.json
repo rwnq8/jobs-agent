@@ -66,11 +66,11 @@
     },
     {
       "id": "M2",
-      "what": "tenant-jobs-db created with the 15-table schema; copy script tenant/m2-copy.js ready (about 2,100 rows, 5 MB, sign-in tables skipped)",
+      "what": "tenant-jobs-db created with the 15-table schema; copy script tenant/m2-copy.mjs ready (about 2,100 rows, 5 MB, sign-in tables skipped)",
       "state": "blocked",
       "needs": "Rowan confirms the data copy once",
-      "blocker": "ultrastable account is over the D1 free-tier daily row limit (code 7500); retry after 00:00 UTC or on a paid plan",
-      "probe": "run tenant/m2-copy.js; src and dst counts match"
+      "blocker": "ultrastable account is over the D1 free-tier daily row limit (code 7500); retries hourly via .github/workflows/m2-copy.yml; also needs repo secret CLOUDFLARE_API_TOKEN",
+      "probe": "workflow m2-copy (hourly) exits 0 when src and dst counts match"
     },
     {
       "id": "M3",
