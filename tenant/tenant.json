@@ -3,22 +3,97 @@
   "app": "jobs",
   "purpose": "Employee-side automation: employers screen, rank and reject by machine; this app lets a job seeker find, judge, tailor and track applications with the same leverage, from a verified record, with every live submission confirmed first.",
   "naming": "tenant-<app>-web (Worker) and tenant-<app>-db (D1) in the ultrastable Cloudflare account, as tenant-ps-web and tenant-ps-db do.",
-  "target": { "worker": "tenant-jobs-web", "d1": "tenant-jobs-db", "state": "planned" },
-  "bindings": {
-    "JOBS_DB": { "today": "D1 qnfo-audit (shared Qniverse database)", "tenant": "D1 tenant-jobs-db (jobsearch_* tables only)", "step": "M2" },
-    "EMAIL": { "today": "service qnfo-email (sign-in codes)", "tenant": "Cloudflare Email Sending or Resend-free equivalent owned by the tenant", "step": "M3" },
-    "QNFO_AI": { "today": "service qnfo-ai router", "tenant": "removed; Workers AI direct (binding AI already present)", "step": "M3" },
-    "ME": { "today": "service personal-api (companion sign-in cookie)", "tenant": "tenant-local sign-in code; companion link becomes optional webhook", "step": "M3" },
-    "AI": { "today": "Workers AI", "tenant": "Workers AI in the ultrastable account", "step": "none" }
+  "target": {
+    "worker": "tenant-jobs-web",
+    "d1": "tenant-jobs-db",
+    "state": "db-created",
+    "d1_id": "47b839be-eb64-445b-9b3b-dff6d6caab3d",
+    "account": "ultrastable"
   },
-  "tables": ["jobsearch_matches","jobsearch_events","jobsearch_runs","jobsearch_apps","jobsearch_auto","jobsearch_codes","jobsearch_history","jobsearch_feeds","jobsearch_sessions","jobsearch_prefs","jobsearch_meta","jobsearch_feedback","jobsearch_bank","jobsearch_bank_history","jobsearch_calib"],
-  "shared_tables_to_cut": { "owner_asks": "recall questions: move to a tenant table jobsearch_asks", "ops_config": "settings: move to jobsearch_meta" },
-  "steps": [
-    { "id": "M1", "what": "Scaffold tenant/ manifest and a check that every worker binding is accounted for", "state": "done" },
-    { "id": "M2", "what": "Create tenant-jobs-db, apply a jobsearch-only schema, copy the 15 tables, switch JOBS_DB", "state": "planned", "needs": "Rowan confirms the data copy once" },
-    { "id": "M3", "what": "Replace EMAIL, QNFO_AI and ME bindings with tenant-owned paths", "state": "planned" },
-    { "id": "M4", "what": "Deploy tenant-jobs-web from this repo; keep qnfo-jobsearch as read-only fallback one week; cut jobs.q08.org over", "state": "planned", "needs": "DNS cutover is Rowan's account" },
-    { "id": "M5", "what": "Retire qnfo-jobsearch and drop the sync-deploy workflow", "state": "planned" }
+  "bindings": {
+    "JOBS_DB": {
+      "today": "D1 qnfo-audit (shared Qniverse database)",
+      "tenant": "D1 tenant-jobs-db (jobsearch_* tables only)",
+      "step": "M2"
+    },
+    "EMAIL": {
+      "today": "service qnfo-email (sign-in codes)",
+      "tenant": "Cloudflare Email Sending or Resend-free equivalent owned by the tenant",
+      "step": "M3"
+    },
+    "QNFO_AI": {
+      "today": "service qnfo-ai router",
+      "tenant": "removed; Workers AI direct (binding AI already present)",
+      "step": "M3"
+    },
+    "ME": {
+      "today": "service personal-api (companion sign-in cookie)",
+      "tenant": "tenant-local sign-in code; companion link becomes optional webhook",
+      "step": "M3"
+    },
+    "AI": {
+      "today": "Workers AI",
+      "tenant": "Workers AI in the ultrastable account",
+      "step": "none"
+    }
+  },
+  "tables": [
+    "jobsearch_matches",
+    "jobsearch_events",
+    "jobsearch_runs",
+    "jobsearch_apps",
+    "jobsearch_auto",
+    "jobsearch_codes",
+    "jobsearch_history",
+    "jobsearch_feeds",
+    "jobsearch_sessions",
+    "jobsearch_prefs",
+    "jobsearch_meta",
+    "jobsearch_feedback",
+    "jobsearch_bank",
+    "jobsearch_bank_history",
+    "jobsearch_calib"
   ],
-  "rules": ["no fabricated resume claims", "resumes never read as AI-generated", "first live submission confirmed with Rowan", "no scraping logged-in LinkedIn", "interview and offer mail surfaced at once"]
+  "shared_tables_to_cut": {
+    "owner_asks": "recall questions: move to a tenant table jobsearch_asks",
+    "ops_config": "settings: move to jobsearch_meta"
+  },
+  "steps": [
+    {
+      "id": "M1",
+      "what": "Scaffold tenant/ manifest and a check that every worker binding is accounted for",
+      "state": "done"
+    },
+    {
+      "id": "M2",
+      "what": "tenant-jobs-db created with the 15-table schema; copy script tenant/m2-copy.js ready (about 2,100 rows, 5 MB, sign-in tables skipped)",
+      "state": "blocked",
+      "needs": "Rowan confirms the data copy once",
+      "blocker": "ultrastable account is over the D1 free-tier daily row limit (code 7500); retry after 00:00 UTC or on a paid plan",
+      "probe": "run tenant/m2-copy.js; src and dst counts match"
+    },
+    {
+      "id": "M3",
+      "what": "Replace EMAIL, QNFO_AI and ME bindings with tenant-owned paths",
+      "state": "planned"
+    },
+    {
+      "id": "M4",
+      "what": "Deploy tenant-jobs-web from this repo; keep qnfo-jobsearch as read-only fallback one week; cut jobs.q08.org over",
+      "state": "planned",
+      "needs": "DNS cutover is Rowan's account"
+    },
+    {
+      "id": "M5",
+      "what": "Retire qnfo-jobsearch and drop the sync-deploy workflow",
+      "state": "planned"
+    }
+  ],
+  "rules": [
+    "no fabricated resume claims",
+    "resumes never read as AI-generated",
+    "first live submission confirmed with Rowan",
+    "no scraping logged-in LinkedIn",
+    "interview and offer mail surfaced at once"
+  ]
 }
